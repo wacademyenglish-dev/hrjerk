@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLF LABS | Homework: The Brilliant Jerk (B1/B2)</title>
+    
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { display: ['Montserrat', 'sans-serif'], body: ['Inter', 'sans-serif'], code: ['Fira Code', 'monospace'] },
+                    colors: { 
+                        brand: '#005A99', /* Corporate Blue */
+                        accent: '#D4AF37', /* Executive Gold */
+                        correct: '#10b981', 
+                        incorrect: '#ef4444',
+                        darkBase: '#060B14',
+                        darkCard: 'rgba(15, 23, 42, 0.8)',
+                        textDim: '#94a3b8'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --brand-main: #005A99; 
+            --accent: #D4AF37; 
+            --correct: #10b981;
+            --incorrect: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            background-color: #060B14;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* BACKGROUND MESH */
+        .ambient-bg { position: fixed; inset: 0; z-index: -3; background: radial-gradient(circle at center, #0F172A 0%, #060B14 100%); overflow: hidden; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.25; mix-blend-mode: screen; animation: float 20s infinite alternate ease-in-out; }
+        .blob-1 { background: var(--brand-main); width: 60vw; height: 60vw; top: -10%; left: -20%; }
+        .blob-2 { background: var(--accent); width: 70vw; height: 70vw; bottom: -20%; right: -20%; animation-delay: -5s; }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5vw, 10vh) scale(1.1); }
+        }
+
+        .grid-overlay { position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; pointer-events: none;}
+
+        /* GLASS COMPONENTS */
+        .glass { background: var(--darkCard); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* ANIMATIONS */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-6px);} 75% {transform: translateX(6px);} }
+
+        /* BUTTONS */
+        .opt-btn { 
+            width: 100%; text-align: left; padding: 18px 20px; border-radius: 16px; 
+            background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); 
+            font-weight: 500; font-size: 1.05rem; transition: all 0.2s; 
+            display: flex; align-items: center; gap: 15px; cursor: pointer;
+        }
+        .opt-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); border-color: var(--brand-main); transform: translateY(-2px); }
+        .opt-btn:disabled { cursor: default; }
+        
+        .opt-btn.correct { background: rgba(16, 185, 129, 0.15); border-color: var(--correct); color: #fff; }
+        .opt-btn.incorrect { background: rgba(239, 68, 68, 0.15); border-color: var(--incorrect); color: #fff; opacity: 0.7;}
+        .opt-btn.dimmed { opacity: 0.4; }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--accent), #B49020); color: #060B14; font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+            padding: 18px 30px; border-radius: 50px; width: 100%; letter-spacing: 1px; transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3); border: none;
+        }
+        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5); filter: brightness(1.1); }
+
+        /* PROGRESS BAR */
+        .progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--accent); transition: width 0.4s ease; box-shadow: 0 0 10px var(--accent); }
+
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- BACKGROUNDS -->
+    <div class="ambient-bg"></div>
+    <div class="grid-overlay"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- HEADER -->
+    <header class="fixed top-0 w-full p-4 z-50 glass border-b-0 border-white/5 rounded-b-3xl">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-briefcase text-accent text-2xl drop-shadow-[0_0_10px_rgba(212,175,55,0.6)]"></i>
+                <div class="flex flex-col">
+                    <span class="font-display font-black text-sm tracking-widest uppercase">Wolf Labs</span>
+                    <span class="text-[0.65rem] text-textDim tracking-widest uppercase">HR Case Study</span>
+                </div>
+            </div>
+            <div class="bg-black/50 border border-white/10 px-4 py-1.5 rounded-full flex items-center gap-2">
+                <i class="fa-solid fa-star text-accent text-xs"></i>
+                <span id="xp-display" class="font-code font-bold text-sm text-white">0 XP</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN WRAPPER -->
+    <main class="pt-24 pb-10 px-4 min-h-screen flex flex-col items-center justify-center max-w-2xl mx-auto w-full">
+
+        <!-- SCREEN: START -->
+        <div id="screen-start" class="w-full text-center slide-up flex flex-col items-center">
+            <div class="w-24 h-24 rounded-3xl bg-black/50 border border-brand shadow-[0_0_40px_rgba(0,90,153,0.4)] flex items-center justify-center mb-6">
+                <i class="fa-solid fa-folder-open text-5xl text-brand"></i>
+            </div>
+            <span class="bg-brand/20 text-blue-400 border border-brand/30 px-3 py-1 rounded-full text-xs font-bold tracking-widest mb-4">MÓDULO B1/B2</span>
+            <h1 class="font-display text-4xl md:text-5xl font-black uppercase tracking-tight mb-2 text-white">The Brilliant Jerk</h1>
+            <p class="text-textDim text-lg mb-10">15 Challenges to solidify your knowledge in Conditionals, Modals, and Corporate Vocabulary.</p>
+            
+            <div class="glass w-full p-8 rounded-3xl text-left border-t-4 border-accent">
+                <p class="font-bold text-sm text-textDim uppercase tracking-widest mb-4"><i class="fa-solid fa-id-badge mr-2"></i> Executive ID</p>
+                <input type="text" id="student-name" placeholder="Enter your name..." class="w-full bg-black/60 border border-white/20 p-4 rounded-xl text-white font-medium text-lg focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all mb-8 shadow-inner font-code">
+                <button onclick="startQuiz()" class="btn-action">START ASSESSMENT</button>
+            </div>
+        </div>
+
+        <!-- SCREEN: QUIZ -->
+        <div id="screen-quiz" class="w-full hidden flex-col w-full">
+            
+            <!-- Progress -->
+            <div class="mb-8 w-full">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="font-display font-bold text-sm text-textDim uppercase tracking-widest">Dossier Page <span id="q-current" class="text-white">1</span>/<span id="q-total">15</span></span>
+                    <span class="text-xs font-code text-accent" id="progress-pct">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass w-full p-6 md:p-10 rounded-3xl relative border-t-4 border-brand shadow-2xl" id="question-card">
+                <div class="bg-brand/20 text-blue-300 text-xs font-bold px-3 py-1 inline-block rounded-md mb-4 uppercase tracking-widest border border-brand/30" id="q-category">Vocabulary</div>
+                <h2 id="q-text" class="text-xl md:text-2xl font-semibold leading-relaxed mb-8 text-white">Question text goes here...</h2>
+                
+                <!-- Options -->
+                <div class="flex flex-col gap-3" id="options-container">
+                    <!-- Buttons injected via JS -->
+                </div>
+
+                <!-- Explanation / Feedback Box (Hidden initially) -->
+                <div id="feedback-box" class="hidden mt-6 p-5 rounded-2xl bg-black/60 border border-white/10 pop-in">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i id="feedback-icon" class="fa-solid text-xl"></i>
+                        <span id="feedback-title" class="font-bold text-lg font-display tracking-wide">Feedback</span>
+                    </div>
+                    <p id="feedback-text" class="text-slate-300 text-sm leading-relaxed mb-6 font-medium">Explanation goes here.</p>
+                    <button onclick="nextQuestion()" class="btn-action w-full py-3 text-sm flex items-center justify-center gap-2">PROCEED <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: RESULTS -->
+        <div id="screen-results" class="w-full hidden text-center flex-col items-center">
+            <i id="result-icon" class="fa-solid fa-building-circle-check text-8xl text-accent mb-6 drop-shadow-[0_0_30px_rgba(212,175,55,0.6)]"></i>
+            <h1 class="font-display text-4xl md:text-5xl font-black uppercase mb-2 text-white">Audit Complete</h1>
+            <p class="text-xl text-textDim mb-10">Director <span id="res-name" class="font-bold text-white uppercase"></span></p>
+            
+            <div class="glass w-full p-8 rounded-3xl border-t-4 border-accent shadow-2xl flex flex-col gap-6 mb-8">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/40 border border-white/10 p-4 rounded-2xl">
+                        <p class="text-xs text-textDim uppercase tracking-widest font-bold mb-1">Final Score</p>
+                        <p class="font-display font-black text-3xl text-white"><span id="res-score">15</span><span class="text-lg text-textDim">/15</span></p>
+                    </div>
+                    <div class="bg-black/40 border border-white/10 p-4 rounded-2xl">
+                        <p class="text-xs text-textDim uppercase tracking-widest font-bold mb-1">Total XP</p>
+                        <p class="font-display font-black text-3xl text-accent" id="res-xp">1500</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white/5 border border-white/10 p-5 rounded-2xl text-left">
+                    <p class="text-xs text-brand uppercase tracking-widest font-bold mb-2"><i class="fa-solid fa-chart-line mr-2"></i> HR Evaluation</p>
+                    <p id="res-eval" class="text-white text-md font-medium leading-relaxed">Evaluation text based on score.</p>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="text-textDim hover:text-white font-bold tracking-widest uppercase text-sm border-b border-transparent hover:border-white transition-all pb-1">Return to Dashboard (Restart)</button>
+        </div>
+
+    </main>
+
+    <script>
+        // --- QUIZ DATA (15 B1/B2-Level Exercises) ---
+        const quizData = [
+            {
+                category: "Vocabulary // HR Terminology",
+                q: "When an employee takes revenge on another employee for reporting them to HR, this is known as:",
+                options: ["Misconduct", "Retaliation", "Severance", "Resignation"],
+                correct: 1,
+                explanation: "Retaliation is an action taken in return for an injury or offense, like a boss punishing an employee who complained about them."
+            },
+            {
+                category: "Grammar // Second Conditional",
+                q: "Choose the correct structure: 'If we ______ Mark, we ______ our biggest client.'",
+                options: ["fire / will lose", "fired / would lose", "fired / will lose", "fire / would lose"],
+                correct: 1,
+                explanation: "In the Second Conditional (hypothetical present/future), we use 'If + Past Simple, would + Base Verb'."
+            },
+            {
+                category: "Corporate Framework // Radical Candor",
+                q: "According to the Radical Candor framework, 'Ruinous Empathy' happens when a manager:",
+                options: ["Challenges directly but doesn't care personally.", "Cares personally but avoids challenging directly.", "Neither cares personally nor challenges directly.", "Provides clear, direct, and kind feedback."],
+                correct: 1,
+                explanation: "Ruinous Empathy is when you are too 'nice' to give hard feedback. You care about their feelings, but your silence hurts their growth."
+            },
+            {
+                category: "Grammar // Modals of Obligation",
+                q: "Which modal verb correctly expresses a strict rule or prohibition?",
+                options: ["You don't have to yell at the team.", "You shouldn't yell at the team.", "You mustn't yell at the team.", "You might not yell at the team."],
+                correct: 2,
+                explanation: "'Mustn't' expresses prohibition (a strict rule against doing something). 'Shouldn't' is just advice, and 'don't have to' means it's optional."
+            },
+            {
+                category: "Vocabulary // Definitions",
+                q: "If an employee is considered 'indispensable' to the company, it means they are:",
+                options: ["Easily replaced.", "Absolutely necessary and impossible to manage without.", "Consistently underperforming.", "Arrogant and difficult to work with."],
+                correct: 1,
+                explanation: "An indispensable employee is someone the company relies on heavily (like the top salesman in our Case Study)."
+            },
+            {
+                category: "Corporate Diplomacy // Hedging",
+                q: "Which of the following is the most diplomatic (C1/B2) way to disagree with the CEO?",
+                options: ["That's a terrible idea. We must fire him.", "You are wrong about keeping him.", "I respectfully disagree. We might want to consider the cultural impact.", "I don't agree with you at all."],
+                correct: 2,
+                explanation: "Using 'respectfully disagree' and 'might want to consider' are examples of Hedging, which softens the disagreement and maintains professionalism."
+            },
+            {
+                category: "Grammar // Second Conditional",
+                q: "Fill in the blank: 'If I ______ the CEO, I wouldn't tolerate this toxic behavior.'",
+                options: ["was", "were", "am", "would be"],
+                correct: 1,
+                explanation: "In formal Second Conditional, we use 'were' instead of 'was' for all subjects (If I were, if he were)."
+            },
+            {
+                category: "Vocabulary // HR Terminology",
+                q: "A financial package given to an employee upon termination is called a:",
+                options: ["Retaliation package", "Severance package", "Misconduct bonus", "Indispensable fund"],
+                correct: 1,
+                explanation: "A 'Severance Package' is pay and benefits an employee receives when they leave employment, often to prevent lawsuits."
+            },
+            {
+                category: "Grammar // Modals of Advice",
+                q: "If you want to give a soft recommendation to a colleague, which modal is best?",
+                options: ["You must talk to HR.", "You have to talk to HR.", "You ought to talk to HR.", "You will talk to HR."],
+                correct: 2,
+                explanation: "'Ought to' and 'Should' are used for giving advice or recommendations, without the force of an obligation like 'must'."
+            },
+            {
+                category: "Corporate Framework // Radical Candor",
+                q: "What is 'Obnoxious Aggression'?",
+                options: ["When a leader challenges directly without showing personal care.", "When a leader ignores a problem completely.", "When a leader praises an employee for bad work.", "When a leader cares too much about an employee's feelings."],
+                correct: 0,
+                explanation: "Obnoxious Aggression is the 'Brilliant Jerk' behavior. They are brutally honest (challenge directly) but act like a jerk (don't care personally)."
+            },
+            {
+                category: "Comprehension // Case Study",
+                q: "In the 'Brilliant Jerk' case study, what was the main dilemma facing the CHRO?",
+                options: ["Whether to give Mark a raise or a promotion.", "Choosing between maintaining sales revenue and protecting the company culture.", "Deciding which junior employee to fire.", "Negotiating a better severance package for the CEO."],
+                correct: 1,
+                explanation: "The core dilemma was Ethics vs. Profit: keeping the toxic employee brings money, but destroys the team's culture."
+            },
+            {
+                category: "Syntax // Corporate English",
+                q: "Which phrase means to make someone else responsible for a fault?",
+                options: ["To shift the blame", "To take the blame", "To share the blame", "To hide the blame"],
+                correct: 0,
+                explanation: "To 'shift the blame' is to point the finger at someone else to avoid taking responsibility for a mistake."
+            },
+            {
+                category: "Grammar // Conditionals Review",
+                q: "Complete the sentence logically: 'If we ignored the complaints, _________.'",
+                options: ["the toxic environment will disappear.", "the junior staff would feel respected.", "the situation would likely get much worse.", "Mark is going to apologize."],
+                correct: 2,
+                explanation: "Using logic and the Second Conditional rule: If + Past (ignored), would + verb (get). Ignoring the complaints allows the toxicity to grow."
+            },
+            {
+                category: "Vocabulary // HR Terminology",
+                q: "Yelling at colleagues or engaging in harassment is officially categorized as:",
+                options: ["Radical Candor", "Gross Misconduct", "A Severance issue", "Diplomatic behavior"],
+                correct: 1,
+                explanation: "Gross Misconduct refers to unacceptable or improper behavior by an employee that is serious enough to warrant immediate dismissal."
+            },
+            {
+                category: "Corporate Diplomacy // Communication",
+                q: "Instead of saying 'You have to do this', a more diplomatic manager might say:",
+                options: ["Do this right now.", "It seems to me that we should consider doing this.", "You must do this.", "I force you to do this."],
+                correct: 1,
+                explanation: "'It seems to me that we should consider...' is a classic hedging phrase used in corporate environments to give direction without sounding overly aggressive."
+            }
+        ];
+
+        // --- STATE VARIABLES ---
+        let studentName = "";
+        let currentQuestion = 0;
+        let score = 0;
+        let xp = 0;
+
+        // --- AUDIO SOUNDS ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'incorrect') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            }
+        }
+
+        // --- CORE FUNCTIONS ---
+        function startQuiz() {
+            const input = document.getElementById('student-name').value.trim();
+            studentName = input || "Executive";
+            playSound('click');
+            
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            document.getElementById('screen-quiz').classList.add('flex');
+            
+            renderQuestion();
+        }
+
+        function updateProgress() {
+            const pct = ((currentQuestion) / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            document.getElementById('progress-pct').innerText = `${Math.round(pct)}%`;
+            document.getElementById('q-current').innerText = currentQuestion + 1;
+            document.getElementById('q-total').innerText = quizData.length;
+        }
+
+        function renderQuestion() {
+            const qData = quizData[currentQuestion];
+            const card = document.getElementById('question-card');
+            
+            // Reset animations
+            card.classList.remove('slide-up');
+            void card.offsetWidth; // trigger reflow
+            card.classList.add('slide-up');
+            
+            document.getElementById('q-category').innerText = qData.category;
+            document.getElementById('q-text').innerText = qData.q;
+            
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = '';
+            
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn group';
+                btn.innerHTML = `
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-display font-bold text-sm text-textDim group-hover:bg-brand-main group-hover:text-white transition-colors">${letters[index]}</div>
+                    <span class="flex-1">${opt}</span>
+                    <i class="fa-solid fa-circle-check opacity-0 text-xl transition-opacity status-icon"></i>
+                `;
+                btn.onclick = () => selectOption(index, btn);
+                optsContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedback-box').classList.add('hidden');
+            updateProgress();
+        }
+
+        function selectOption(selectedIndex, btnElement) {
+            const qData = quizData[currentQuestion];
+            const isCorrect = (selectedIndex === qData.correct);
+            const allBtns = document.querySelectorAll('.opt-btn');
+
+            // Disable all buttons
+            allBtns.forEach((btn, idx) => {
+                btn.disabled = true;
+                if(idx === qData.correct) {
+                    btn.classList.add('correct');
+                    btn.querySelector('.status-icon').classList.replace('fa-circle-check', 'fa-check-circle');
+                    btn.querySelector('.status-icon').classList.remove('opacity-0');
+                    btn.querySelector('.w-8').classList.replace('bg-white/10', 'bg-correct');
+                    btn.querySelector('.w-8').classList.replace('text-textDim', 'text-white');
+                } else if(idx === selectedIndex && !isCorrect) {
+                    btn.classList.add('incorrect', 'shake');
+                    btn.querySelector('.status-icon').classList.replace('fa-circle-check', 'fa-times-circle');
+                    btn.querySelector('.status-icon').classList.remove('opacity-0');
+                    btn.querySelector('.w-8').classList.replace('bg-white/10', 'bg-incorrect');
+                    btn.querySelector('.w-8').classList.replace('text-textDim', 'text-white');
+                } else {
+                    btn.classList.add('dimmed');
+                }
+            });
+
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            
+            if(isCorrect) {
+                playSound('correct');
+                score++;
+                xp += 100;
+                document.getElementById('xp-display').innerText = `${xp} XP`;
+                document.getElementById('xp-display').parentElement.classList.add('pop-in');
+                setTimeout(()=> document.getElementById('xp-display').parentElement.classList.remove('pop-in'), 300);
+                
+                feedbackBox.style.borderColor = 'var(--correct)';
+                feedbackIcon.className = 'fa-solid fa-shield-check text-correct text-xl';
+                feedbackTitle.innerText = "Accurate Assessment";
+                feedbackTitle.className = 'font-bold text-lg font-display tracking-wide text-correct uppercase';
+            } else {
+                playSound('incorrect');
+                feedbackBox.style.borderColor = 'var(--incorrect)';
+                feedbackIcon.className = 'fa-solid fa-triangle-exclamation text-incorrect text-xl';
+                feedbackTitle.innerText = "Correction Required";
+                feedbackTitle.className = 'font-bold text-lg font-display tracking-wide text-incorrect uppercase';
+            }
+
+            document.getElementById('feedback-text').innerHTML = `<strong class="text-white">Analysis:</strong> ${qData.explanation}`;
+            feedbackBox.classList.remove('hidden');
+            
+            setTimeout(() => {
+                feedbackBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            currentQuestion++;
+            if(currentQuestion < quizData.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('flex');
+            
+            const resScreen = document.getElementById('screen-results');
+            resScreen.classList.remove('hidden');
+            resScreen.classList.add('flex', 'fade-in');
+
+            document.getElementById('res-name').innerText = studentName;
+            document.getElementById('res-score').innerText = score;
+            
+            // Animate XP
+            let currentXp = 0;
+            const xpDisplay = document.getElementById('res-xp');
+            const step = Math.max(1, Math.floor(xp / 30));
+            const xpInterval = setInterval(() => {
+                currentXp += step;
+                if(currentXp >= xp) {
+                    currentXp = xp;
+                    clearInterval(xpInterval);
+                }
+                xpDisplay.innerText = currentXp;
+            }, 30);
+
+            // Evaluation Text
+            const evalText = document.getElementById('res-eval');
+            const icon = document.getElementById('result-icon');
+            
+            if(score === 15) {
+                evalText.innerText = "Flawless execution! Your command of B1/B2 grammar, corporate vocabulary, and diplomatic language is absolute. The WOLF LABS system recognizes you as a master of HR strategy.";
+                icon.className = 'fa-solid fa-crown text-8xl text-accent mb-6 drop-shadow-[0_0_40px_rgba(212,175,55,0.8)] pop-in';
+            } else if(score >= 12) {
+                evalText.innerText = "Outstanding performance. You have a very strong grasp of the Radical Candor concepts and conditionals. Review the minor errors to achieve absolute perfection.";
+                icon.className = 'fa-solid fa-shield-halved text-8xl text-brand-main mb-6 drop-shadow-[0_0_30px_rgba(0,90,153,0.6)] pop-in';
+            } else if(score >= 8) {
+                evalText.innerText = "Good effort, Director. You understood the core concepts, but the advanced grammar (Conditionals/Modals) needs more reinforcement. We recommend reviewing the Masterclass notes.";
+                icon.className = 'fa-solid fa-bullseye text-8xl text-orange-400 mb-6 drop-shadow-[0_0_30px_rgba(251,146,60,0.6)] pop-in';
+            } else {
+                evalText.innerText = "Mission compromised. It seems the cognitive overload from the corporate vocabulary was too high. Return to the Case Study, review the Lexicon, and try again.";
+                icon.className = 'fa-solid fa-triangle-exclamation text-8xl text-incorrect mb-6 drop-shadow-[0_0_30px_rgba(239,68,68,0.6)] pop-in';
+            }
+        }
+    </script>
+</body>
+</html>
